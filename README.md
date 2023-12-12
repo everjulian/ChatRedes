@@ -34,7 +34,6 @@ Licencia 📄
 Este proyecto está bajo la licencia MIT. Consulta el archivo LICENSE.md para más detalles.
 ¡Espero que disfrutes usando Chat Flutter Offline! Si tienes alguna pregunta o comentario, no dudes en contactarnos.
 
-Como usar la aplicacion 💻✨
 
 # Pasos para Utilizar la Aplicación de Chat 📱💬
 
