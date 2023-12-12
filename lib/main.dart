@@ -12,6 +12,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       home: RoomSelectionScreen(),
     );
   }
@@ -24,24 +25,27 @@ class RoomSelectionScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Select a Room'),
+        title: const Text('🚪 Selecciona una Sala'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
+            // 📝 Campo de texto para ingresar el nombre de la sala
             TextField(
               controller: _roomController,
-              decoration: InputDecoration(
-                labelText: 'Enter Room Name',
+              decoration: const InputDecoration(
+                labelText: '🏠 Ingresa el Nombre de la Sala',
               ),
             ),
-            SizedBox(height: 16.0),
+            const SizedBox(height: 16.0),
+            // 🚀 Botón para unirse a la sala
             ElevatedButton(
               onPressed: () {
                 final roomName = _roomController.text;
                 if (roomName.isNotEmpty) {
+                  // 🌐 Navegar a la pantalla de chat al presionar el botón
                   Navigator.push(
                     context,
                     MaterialPageRoute(
@@ -50,7 +54,7 @@ class RoomSelectionScreen extends StatelessWidget {
                   );
                 }
               },
-              child: Text('Join Room'),
+              child: const Text('🚀 Unirse a la Sala'),
             ),
           ],
         ),
@@ -77,23 +81,27 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   void initState() {
     super.initState();
+    // 🚀 Inicializar la conexión de red y la base de datos al iniciar la pantalla de chat
     initNetwork();
     initDatabase();
   }
 
   Future<void> initDatabase() async {
-    final database = await createDatabase();
-    print('Database initialized.');
+    // 📦 Inicializar la base de datos local
+    print('🗃️ Base de datos inicializada.');
 
-    // Load messages from the database when the app starts.
+    // 🔄 Cargar mensajes desde la base de datos cuando la aplicación inicia.
     await loadMessages();
   }
 
   Future<Database> createDatabase() async {
+    // 📁 Obtener la carpeta de la base de datos
     final databaseFolder = await getDatabasesPath();
     return openDatabase(
+      // 🚀 Abrir la base de datos con el nombre de la sala
       join(databaseFolder, '${widget.roomName}_chat_database.db'),
       onCreate: (db, version) {
+        // 📝 Crear la tabla de mensajes si la base de datos es creada por primera vez
         db.execute(
           'CREATE TABLE messages (id INTEGER PRIMARY KEY, sender TEXT, message TEXT, timestamp INTEGER)',
         );
@@ -104,29 +112,36 @@ class _ChatScreenState extends State<ChatScreen> {
 
   Future<void> initNetwork() async {
     try {
+      // 🌐 Crear un servidor de sockets
       server = await ServerSocket.bind('0.0.0.0', 12345);
+      // 🎧 Escuchar a los clientes conectados
       server?.listen((Socket clientSocket) {
         setState(() {
+          // 🚀 Agregar clientes a la lista cuando se conectan
           clients.add(clientSocket);
         });
         clientSocket.listen(
           (List<int> data) {
+            // 📡 Manejar mensajes recibidos de los clientes
             final receivedMessage = utf8.decode(data);
             handleReceivedMessage(receivedMessage);
           },
           onDone: () {
-            print('Client disconnected');
+            // 🚀 Manejar la desconexión del cliente
+            print('🚫 Cliente desconectado');
             handleClientDisconnect(clientSocket);
           },
         );
       });
     } catch (e) {
-      print('Failed to create server: $e');
+      print('❌ Error al crear el servidor: $e');
     }
   }
 
   Future<void> insertMessage(String sender, String message) async {
+    // 📦 Obtener la base de datos local
     final database = await createDatabase();
+    // 📥 Insertar un mensaje en la base de datos
     await database.insert(
       'messages',
       {
@@ -137,57 +152,67 @@ class _ChatScreenState extends State<ChatScreen> {
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
 
-    // Reload messages after inserting a new one.
+    // 🔄 Recargar mensajes después de insertar uno nuevo
     await loadMessages();
-    print('Message inserted.');
+    print('✉️ Mensaje insertado.');
   }
 
   Future<void> loadMessages() async {
+    // 📦 Obtener la base de datos local
     final database = await createDatabase();
+    // 📋 Consultar mensajes desde la base de datos
     final List<Map<String, dynamic>> result = await database.query('messages');
 
     setState(() {
+      // 🚀 Actualizar la lista de mensajes
       messages = result.map((map) => '${map['sender']}: ${map['message']}').toList();
     });
 
-    print('Messages loaded: $messages');
+    print('✉️ Mensajes cargados: $messages');
   }
 
   void handleReceivedMessage(String receivedMessage) {
-    // Handle the received message from another device.
+    // 📡 Manejar el mensaje recibido de otro dispositivo
     setState(() {
-      messages.add('Other: $receivedMessage');
+      messages.add('👤 Otro: $receivedMessage');
     });
+    // 📡 Transmitir el mensaje a todos los clientes conectados
     broadcastMessage(receivedMessage);
   }
 
   void handleClientDisconnect(Socket client) {
+    // 🚀 Manejar la desconexión del cliente
     clients.remove(client);
-    print('Client disconnected');
+    print('🚫 Cliente desconectado');
   }
 
   void broadcastMessage(String message) {
+    // 📡 Transmitir el mensaje a todos los clientes conectados
     clients.forEach((client) {
       client.write(utf8.encode(message));
     });
   }
 
   void sendMessage(String message) {
+    // 📡 Transmitir el mensaje a todos los clientes conectados
     clients.forEach((client) {
       client.write(utf8.encode(message));
     });
 
     setState(() {
-      messages.add('You: $message');
+      // 🚀 Agregar el mensaje propio a la lista visual
+      messages.add('👤 Tú: $message');
     });
-    insertMessage('You', message); // Insert your own messages to the local database
+    // 📦 Insertar mensajes propios en la base de datos local
+    insertMessage('Tú', message);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Chat Room: ${widget.roomName}'),
+        // 🚀 Mostrar el nombre de la sala en la barra de aplicación
+        title: Text('🗨️ Sala de Chat: ${widget.roomName}'),
       ),
       body: Column(
         children: <Widget>[
@@ -209,17 +234,19 @@ class _ChatScreenState extends State<ChatScreen> {
                   child: TextField(
                     controller: _messageController,
                     onSubmitted: (_) {
+                      // 📡 Enviar mensaje al presionar "Enter"
                       sendMessage(_messageController.text);
                       _messageController.clear();
                     },
-                    decoration: InputDecoration(
-                      hintText: 'Type a message...',
+                    decoration: const InputDecoration(
+                      hintText: '📝 Escribe un mensaje...',
                     ),
                   ),
                 ),
                 IconButton(
-                  icon: Icon(Icons.send),
+                  icon: const Icon(Icons.send),
                   onPressed: () {
+                    // 📡 Enviar mensaje al presionar el botón de enviar
                     sendMessage(_messageController.text);
                     _messageController.clear();
                   },
@@ -234,10 +261,11 @@ class _ChatScreenState extends State<ChatScreen> {
 
   @override
   void dispose() {
+    // 🚀 Cerrar el servidor y los clientes al cerrar la pantalla de chat
     server?.close();
-    clients.forEach((client) {
+    for (var client in clients) {
       client.close();
-    });
+    }
     super.dispose();
   }
 }
