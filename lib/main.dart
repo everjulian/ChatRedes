@@ -25,7 +25,7 @@ class RoomSelectionScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('🚪 Selecciona una Sala'),
+        title: const Text('🚪 Selecciona o Crea una Sala'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -40,21 +40,41 @@ class RoomSelectionScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 16.0),
-            // 🚀 Botón para unirse a la sala
-            ElevatedButton(
-              onPressed: () {
-                final roomName = _roomController.text;
-                if (roomName.isNotEmpty) {
-                  // 🌐 Navegar a la pantalla de chat al presionar el botón
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => ChatScreen(roomName: roomName),
-                    ),
-                  );
-                }
-              },
-              child: const Text('🚀 Unirse a la Sala'),
+            // 🚀 Botones para unirse a una sala o crear una nueva
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                ElevatedButton(
+                  onPressed: () {
+                    final roomName = _roomController.text;
+                    if (roomName.isNotEmpty) {
+                      // 🌐 Navegar a la pantalla de chat al presionar el botón
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => ChatScreen(roomName: roomName),
+                        ),
+                      );
+                    }
+                  },
+                  child: const Text('🚀 Unirse a la Sala'),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    final roomName = _roomController.text;
+                    if (roomName.isNotEmpty) {
+                      // 🌐 Navegar a la pantalla de chat al presionar el botón
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => ChatScreen(roomName: roomName),
+                        ),
+                      );
+                    }
+                  },
+                  child: const Text('➕ Crear Sala'),
+                ),
+              ],
             ),
           ],
         ),
@@ -188,16 +208,16 @@ class _ChatScreenState extends State<ChatScreen> {
 
   void broadcastMessage(String message) {
     // 📡 Transmitir el mensaje a todos los clientes conectados
-    clients.forEach((client) {
+    for (var client in clients) {
       client.write(utf8.encode(message));
-    });
+    }
   }
 
   void sendMessage(String message) {
     // 📡 Transmitir el mensaje a todos los clientes conectados
-    clients.forEach((client) {
+    for (var client in clients) {
       client.write(utf8.encode(message));
-    });
+    }
 
     setState(() {
       // 🚀 Agregar el mensaje propio a la lista visual
